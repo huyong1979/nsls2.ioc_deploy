@@ -1,0 +1,3 @@
+---
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_required_module: modbus_bb9fa05

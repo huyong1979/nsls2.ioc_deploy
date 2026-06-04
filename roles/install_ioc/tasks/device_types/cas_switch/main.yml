@@ -1,0 +1,16 @@
+---
+- name: Deploy st.cmd
+  ansible.builtin.template:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/templates/st.cmd.j2"
+    dest: "{{ install_ioc_ioc_directory }}/st.cmd"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0775"
+
+- name: Copy cas-switch.db
+  ansible.builtin.copy:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/files/cas-switch.db"
+    dest: "{{ install_ioc_ioc_directory }}/cas-switch.db"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0664"

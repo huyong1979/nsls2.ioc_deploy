@@ -8,8 +8,8 @@ import yaml
 
 DEVICE_ROLES = [
     role
-    for role in os.listdir("roles/device_roles")
-    if os.path.isdir(os.path.join("roles/device_roles", role))
+    for role in os.listdir("roles/install_ioc/tasks/device_types")
+    if os.path.isdir(os.path.join("roles/install_ioc/tasks/device_types", role))
 ]
 
 
@@ -18,10 +18,10 @@ def get_example_configs(device_role: str) -> list[Path]:
     Find all example config files for a device role.
 
     Supports both:
-    - New structure: roles/device_roles/<role>/examples/<name>/config.yml
-    - Legacy structure: roles/device_roles/<role>/example.yml
+    - New structure: roles/install_ioc/tasks/device_types/<role>/examples/<name>/config.yml
+    - Legacy structure: roles/install_ioc/tasks/device_types/<role>/example.yml
     """
-    role_path = Path("roles/device_roles") / device_role
+    role_path = Path("roles/install_ioc/tasks/device_types") / device_role
     configs = []
 
     # Check for new examples/ structure
@@ -43,7 +43,7 @@ def get_example_configs(device_role: str) -> list[Path]:
 
 def get_verify_files(device_role: str) -> list[Path]:
     """Find all verify.yml files for a device role."""
-    role_path = Path("roles/device_roles") / device_role
+    role_path = Path("roles/install_ioc/tasks/device_types") / device_role
     verify_files = []
 
     examples_dir = role_path / "examples"
@@ -96,7 +96,7 @@ def test_ensure_example_present(device_role):
 
 
 def test_ensure_required_schema_present(device_role):
-    schema_path = os.path.join("roles/device_roles", device_role, "schema.yml")
+    schema_path = os.path.join("roles/install_ioc/tasks/device_types", device_role, "schema.yml")
     assert os.path.exists(schema_path), (
         f"Schema file for {device_role} role is missing at {schema_path}."
     )
@@ -111,7 +111,7 @@ def test_ensure_example_validates_with_base_schema(device_role):
     validators["ioc_type"] = IOCTypeValidator
 
     base_schema = yamale.make_schema(
-        "roles/deploy_ioc/schema.yml", validators=validators
+        "roles/install_ioc/schema.yml", validators=validators
     )
 
     for config_path in configs:
@@ -132,7 +132,7 @@ def test_ensure_example_validates_with_base_schema(device_role):
 
 
 def test_ensure_example_validates_with_role_specific_schema(device_role):
-    schema_path = os.path.join("roles/device_roles", device_role, "schema.yml")
+    schema_path = os.path.join("roles/install_ioc/tasks/device_types", device_role, "schema.yml")
     configs = get_example_configs(device_role)
 
     if not configs:

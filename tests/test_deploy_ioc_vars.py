@@ -4,10 +4,11 @@ import pytest
 import yamale
 import yaml
 
-DEPLOY_IOC_VARS_FILES = [
-    os.path.splitext(f)[0]
-    for f in os.listdir("roles/deploy_ioc/vars")
-    if f.endswith(".yml")
+INSTALL_IOC_VARS_FILES = [
+    d
+    for d in os.listdir("roles/install_ioc/tasks/device_types")
+    if os.path.isdir(os.path.join("roles/install_ioc/tasks/device_types", d))
+    and os.path.exists(os.path.join("roles/install_ioc/tasks/device_types", d, "vars.yml"))
 ]
 
 INSTALL_MODULE_FILES = [
@@ -18,17 +19,17 @@ INSTALL_MODULE_FILES = [
 
 
 pytestmark = pytest.mark.parametrize(
-    "deploy_ioc_var_file", DEPLOY_IOC_VARS_FILES, indirect=True
+    "install_ioc_var_file", INSTALL_IOC_VARS_FILES, indirect=True
 )
 
 
-def test_deploy_ioc_var_file_has_matching_role(deploy_ioc_var_file):
-    assert os.path.exists(os.path.join("roles/device_roles", deploy_ioc_var_file.name))
+def test_install_ioc_var_file_has_matching_role(install_ioc_var_file):
+    assert os.path.exists(os.path.join("roles/install_ioc/tasks/device_types", install_ioc_var_file.name))
 
 
-def test_deploy_ioc_var_files_valid(deploy_ioc_var_file, module_name_validator):
-    if deploy_ioc_var_file.data:
-        data = yamale.make_data(content=yaml.dump(deploy_ioc_var_file.data))
+def test_install_ioc_var_files_valid(install_ioc_var_file, module_name_validator):
+    if install_ioc_var_file.data:
+        data = yamale.make_data(content=yaml.dump(install_ioc_var_file.data))
         validators = yamale.validators.DefaultValidators.copy()
         validators["module_name"] = module_name_validator
         schema = yamale.make_schema(
@@ -40,15 +41,15 @@ def test_deploy_ioc_var_files_valid(deploy_ioc_var_file, module_name_validator):
             pytest.fail(f"YAML validation failed: {e}")
 
 
-def test_deploy_ioc_var_file_required_module_exists(deploy_ioc_var_file):
+def test_install_ioc_var_file_required_module_exists(install_ioc_var_file):
     if (
-        deploy_ioc_var_file.data
-        and "deploy_ioc_required_module" in deploy_ioc_var_file.data
+        install_ioc_var_file.data
+        and "install_ioc_required_module" in install_ioc_var_file.data
     ):
-        if deploy_ioc_var_file.data["deploy_ioc_required_module"]:
+        if install_ioc_var_file.data["install_ioc_required_module"]:
             assert os.path.exists(
                 os.path.join(
                     "roles/install_module/vars",
-                    f"{deploy_ioc_var_file.data['deploy_ioc_required_module']}.yml",
+                    f"{install_ioc_var_file.data['install_ioc_required_module']}.yml",
                 )
             )

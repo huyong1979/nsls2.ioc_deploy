@@ -1,0 +1,16 @@
+#
+# {{ ansible_managed }}
+#
+file "${PPMAC}/db/autohome.db"
+{{"{"}}
+pattern
+{{"{"}}SYS, DEV, PLC, PORT{{"}"}}
+{% for axis in ioc.axes %}
+{{"{"}}"{{ install_ioc_merged_env.SYS }}", "{{"{"}}{{ axis.component }}-Ax:{{ axis.name }}{{"}"}}", {{ axis.num + 7 }}, "{{ install_ioc_merged_env.SSH_PORT }}"{{"}"}}
+{% endfor %}
+{% if ioc.virtual_axes is defined %}
+{% for axis in ioc.virtual_axes %}
+{{"{"}}"{{ install_ioc_merged_env.SYS }}", "{{"{"}}{{ axis.component }}-Ax:{{ axis.name }}{{"}"}}", {{ axis.home_plc }}, "{{ install_ioc_merged_env.SSH_PORT }}"{{"}"}}
+{% endfor %}
+{% endif %}
+{{"}"}}

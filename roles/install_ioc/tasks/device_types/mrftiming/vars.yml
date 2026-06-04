@@ -1,0 +1,9 @@
+---
+
+install_ioc_required_module: mrftiming_3bb9fcf
+install_ioc_executable: MRFTiming
+install_ioc_use_common: true
+install_ioc_make_autosave_files: true
+install_ioc_req_file_list:
+  - name: "auto_settings.req"
+    macros: 'P=$(PREFIX), R=""'

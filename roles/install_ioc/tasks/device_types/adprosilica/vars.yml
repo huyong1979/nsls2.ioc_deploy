@@ -1,0 +1,10 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: true
+install_ioc_required_module: adprosilica_9abb772
+install_ioc_req_file_list:
+  - name: auto_settings.req
+    macros: "P=$(PREFIX)"
+install_ioc_device_specific_env:
+  PORT: "PS1"

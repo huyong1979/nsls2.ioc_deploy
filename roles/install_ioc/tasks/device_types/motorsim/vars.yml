@@ -1,0 +1,9 @@
+---
+# Variables for the motorsim role
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_required_module: motorsim_ioc_683afc0
+install_ioc_req_file_list:
+  - name: motorSim_settings.req
+    macros: ""
+install_ioc_device_specific_env:
+  PORT: MTRSIM1

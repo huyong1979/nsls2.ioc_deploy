@@ -1,0 +1,33 @@
+---
+# Tasks for lakeshore331 role
+- name: Create protocol directory
+  ansible.builtin.file:
+    path: "{{ install_ioc_ioc_directory }}/protocol"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    state: directory
+    mode: "0775"
+
+- name: Install base startup script
+  ansible.builtin.template:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/templates/base.cmd.j2"
+    dest: "{{ install_ioc_ioc_directory }}/iocBoot/base.cmd"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0664"
+
+- name: Copy databases file for specified controller model num
+  ansible.builtin.copy:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/files/Lakeshore331.template"
+    dest: "{{ install_ioc_ioc_directory }}/db/Lakeshore331.template"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0664"
+
+- name: Install lakeshore331 substitution file
+  ansible.builtin.template:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/templates/lakeshore331.substitutions.j2"
+    dest: "{{ install_ioc_ioc_directory }}/db/lakeshore331.substitutions"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0664"

@@ -1,0 +1,5 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_required_module: ether_ip_b27350b

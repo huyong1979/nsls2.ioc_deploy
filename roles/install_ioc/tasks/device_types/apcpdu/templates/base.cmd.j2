@@ -1,0 +1,13 @@
+
+epicsEnvSet("MIBDIRS", "+$(BASESNMPIOC)/mibs:/var/lib/mibs/ietf/:/usr/share/mibs/ietf/:/usr/share/mibs/iana/")
+
+SNMP_DRV_DEBUG(0)
+
+dbLoadDatabase("{{ install_ioc_template_root_path }}/dbd/{{ install_ioc_executable }}.dbd")
+{{ install_ioc_executable }}_registerRecordDeviceDriver(pdbbase)
+
+# apcpdu specific commands
+## Load record instances
+{% for device in ioc.devices %}
+dbLoadRecords("$(BASESNMPIOC)/db/{{ device.TYPE }}.db", "SYS={{ device.SYS }},DEV={{ device.DEV }},IP={{ device.HOST }}")
+{% endfor %}

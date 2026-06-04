@@ -1,0 +1,7 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_make_autosave_files: true
+install_ioc_required_module: base_stream_ioc_093e6cf
+install_ioc_executable: BaseStreamApp

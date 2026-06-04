@@ -44,7 +44,7 @@ Simply make changes to the device role and submit a pull request to this reposit
 
 #### Special Case: New version of the module source code
 
-If you require a new version of the IOC, you will need to [add a new installable module](#adding-a-new-installable-module) with that specific Git commit hash. Then, you can override the `deploy_ioc_required_module` of the existing device role to point to this new installable module.
+If you require a new version of the IOC, you will need to [add a new installable module](#adding-a-new-installable-module) with that specific Git commit hash. Then, you can override the `install_ioc_required_module` of the existing device role to point to this new installable module.
 
 If the newest version is not a major release (i.e. does not contain breaking changes), then you can likely update the existing installable module to use the new Git commit hash. Be sure to extensively test with real hardware before and after doing this.
 

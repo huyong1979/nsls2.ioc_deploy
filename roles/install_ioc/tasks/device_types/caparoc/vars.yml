@@ -1,0 +1,8 @@
+---
+install_ioc_use_common: true
+install_ioc_required_module: caparoc_c426a13
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_make_autosave_files: true
+install_ioc_executable: caparoc
+install_ioc_device_specific_env:
+  EPICS_DB_INCLUDE_PATH: "$(CAPAROC)/db"

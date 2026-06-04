@@ -1,0 +1,6 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: true
+install_ioc_required_module: adgermanium_0395fac
+install_ioc_executable: germanium

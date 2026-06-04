@@ -1,0 +1,8 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_make_autosave_files: true
+install_ioc_required_module: base_soft_ioc_f4c87af
+install_ioc_executable: baseSoftIOC
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"

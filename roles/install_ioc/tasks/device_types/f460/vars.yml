@@ -1,0 +1,7 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_required_module: f460_e24199e
+install_ioc_executable: F460
+install_ioc_make_autosave_files: true

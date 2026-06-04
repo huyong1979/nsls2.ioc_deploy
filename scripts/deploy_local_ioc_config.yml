@@ -12,20 +12,20 @@
     - name: Fail if local ioc configuration is not specified
       ansible.builtin.fail:
         msg: "Local IOC configuration is required"
-      when: deploy_ioc_local_config_path is not defined
+      when: install_ioc_local_config_path is not defined
 
-    - name: Fail if deploy_ioc_target is not specified
+    - name: Fail if install_ioc_target is not specified
       ansible.builtin.fail:
-        msg: "deploy_ioc_target variable is required to specify which IOC to deploy"
-      when: deploy_ioc_target is not defined
+        msg: "install_ioc_target variable is required to specify which IOC to deploy"
+      when: install_ioc_target is not defined
 
     # Typically host_config will be a dict of all ioc configurations on a particular
     # host. Here, we always have one target.
     - name: Load local ioc configuration
       ansible.builtin.include_vars:
-        file: "{{ deploy_ioc_local_config_path }}"
+        file: "{{ install_ioc_local_config_path }}"
         name: host_config
-      when: deploy_ioc_local_config_path is defined
+      when: install_ioc_local_config_path is defined
 
     - name: Set EPICS interface information to localhost
       ansible.builtin.set_fact:
@@ -34,7 +34,7 @@
           broadcast: "127.0.0.1"
 
     - name: Update epics interface automatically if nsls2.general collection available
-      when: deploy_ioc_nsls2network_available | default(false) and ansible_interfaces is defined
+      when: install_ioc_nsls2network_available | default(false) and ansible_interfaces is defined
       block:
         - name: Find EPICS interface among host interfaces
           ansible.builtin.set_fact:
@@ -57,6 +57,6 @@
 
     - name: Deploy specified IOC
       ansible.builtin.include_role:
-        name: nsls2.ioc_deploy.deploy_ioc
+        name: nsls2.ioc_deploy.install_ioc
       vars:
-        deploy_ioc_ioc_name: "{{ deploy_ioc_target }}"
+        install_ioc_ioc_name: "{{ install_ioc_target }}"

@@ -1,0 +1,56 @@
+---
+
+- name: Ensure python3.11 is installed
+  ansible.builtin.dnf:
+    name: python3.11
+    state: present
+
+- name: Delete old venv if present
+  ansible.builtin.file:
+    path: "{{ install_ioc_ioc_directory }}/venv"
+    state: absent
+
+- name: Create virtual environment directory
+  ansible.builtin.file:
+    path: "{{ install_ioc_ioc_directory }}/venv"
+    state: directory
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0775"
+
+- name: Create python3.11 virtual environment
+  ansible.builtin.command:
+    cmd: python3.11 -m venv "{{ install_ioc_ioc_directory }}/venv"
+  register: pandabox_create_venv
+  changed_when: pandabox_create_venv.rc == 0
+
+- name: Install required python packages in venv
+  # Use the venv's pip directly via the command module to avoid Ansible's
+  # ansible.builtin.pip module dependency on `setuptools`/`pkg_resources`
+  # being installed in the target's system Python (not present in the EL9
+  # container image used by CI).
+  ansible.builtin.command:
+    argv:
+      - "{{ install_ioc_ioc_directory }}/venv/bin/pip"
+      - install
+      - "{{ item }}"
+  loop: "{{ device_roles_pandabox_pip_dependencies }}"
+  register: pandabox_pip_install
+  # changed_when is evaluated per loop iteration, so `pandabox_pip_install`
+  # here is the per-item result dict (with `.stdout`), not the aggregated
+  # `.results` list available after the loop completes.
+  changed_when: "'Successfully installed' in pandabox_pip_install.stdout"
+
+- name: Update ownership of venv directory
+  ansible.builtin.command:
+    cmd: chown -R {{ host_config.softioc_user }}:{{ host_config.softioc_group }} {{ install_ioc_ioc_directory }}/venv # yamllint disable-line rule:line-length
+  register: pandabox_venv_ownership_result
+  changed_when: pandabox_venv_ownership_result.rc == 0
+
+- name: Install startup script file
+  ansible.builtin.template:
+    src: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/templates/st.cmd.j2"
+    dest: "{{ install_ioc_ioc_directory }}/st.cmd"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0775"

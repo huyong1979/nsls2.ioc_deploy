@@ -1,0 +1,6 @@
+---
+
+install_ioc_use_common: false
+install_ioc_required_module: qepro_734fbdd
+install_ioc_device_specific_env:
+  PORT: "QEPRO"

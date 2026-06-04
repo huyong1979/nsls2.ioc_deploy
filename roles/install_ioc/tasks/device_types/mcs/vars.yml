@@ -1,0 +1,14 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_required_module: mcs_49f0f2b
+install_ioc_executable: mcs
+install_ioc_make_autosave_files: true
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_device_specific_env:
+  PORT: "MCS2"
+  PREFIX: "$(P)$(R)"
+  MOVING_POLL_PERIOD: 50
+  IDLE_POLL_PERIOD: 1000
+  DISABLE_SPEED: 0

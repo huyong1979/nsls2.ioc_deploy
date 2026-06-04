@@ -1,0 +1,7 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_required_module: i404_4ea37d0
+install_ioc_executable: i404
+install_ioc_make_autosave_files: true

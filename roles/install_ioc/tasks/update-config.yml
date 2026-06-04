@@ -1,0 +1,63 @@
+---
+
+- name: Check if config file already exists
+  ansible.builtin.stat:
+    path: "{{ install_ioc_iocs_directory }}/{{ install_ioc_ioc_name }}/config"
+  register: install_ioc_config_file_exists
+
+- name: Get existing port number
+  when: install_ioc_config_file_exists.stat.exists
+  block:
+    - name: Check if port number is already assigned
+      ansible.builtin.shell:
+        cmd: set -o pipefail && cat config | grep ^PORT | awk -F '=' '{print($2)}' # yamllint disable-line rule:line-length
+        chdir: "{{ install_ioc_iocs_directory }}/{{ install_ioc_ioc_name }}"
+      register: install_ioc_current_port
+      changed_when: install_ioc_current_port.rc == 0
+
+    - name: Set port number to existing one
+      ansible.builtin.set_fact:
+        install_ioc_nextport: "{{ install_ioc_current_port.stdout }}"
+      when: install_ioc_current_port.stdout != ""
+
+- name: Find next available port
+  when: not install_ioc_config_file_exists.stat.exists
+  block:
+    - name: Find largest port number in use
+      ansible.builtin.shell:
+        # yamllint disable rule:line-length
+        cmd: |
+          set -o pipefail
+          configs=$(find -maxdepth 2 -name config -type f)
+          if [ -z "$configs" ]; then
+            exit 0
+          fi
+          echo "$configs" | \
+          xargs grep -l "^HOST={{ inventory_hostname.split('.')[0] }}" 2>/dev/null | \
+          xargs -I{} sh -c 'grep ^PORT {} | awk -F= "{print \$2}"' | \
+          sort -n | tail -1
+        # yamllint enable rule:line-length
+        chdir: "{{ install_ioc_iocs_directory }}"
+      register: install_ioc_current_max_port
+      changed_when: false
+      failed_when: false
+
+    - name: Set next port number
+      ansible.builtin.set_fact:
+        install_ioc_nextport:
+          "{{ install_ioc_current_max_port.stdout | int + install_ioc_loop_index + 1 }}" # yamllint disable-line rule:line-length
+      when:
+        install_ioc_current_max_port.stdout != "" and
+        (install_ioc_current_max_port.stdout | int) > (install_ioc_nextport | int)
+
+- name: Print next port number
+  ansible.builtin.debug:
+    msg: "{{ install_ioc_nextport }}"
+
+- name: Install Manage-IOCs config file
+  ansible.builtin.template:
+    src: "templates/config.j2"
+    dest: "{{ install_ioc_iocs_directory }}/{{ install_ioc_ioc_name }}/config"
+    owner: "{{ host_config.softioc_user }}"
+    group: "{{ host_config.softioc_group }}"
+    mode: "0664"

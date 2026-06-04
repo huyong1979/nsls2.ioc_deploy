@@ -1,0 +1,8 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: false
+install_ioc_required_module: hiden_rga_0744058
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_make_autosave_files: true
+install_ioc_executable: HidenRGA

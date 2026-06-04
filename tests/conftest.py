@@ -55,5 +55,13 @@ def install_module_var_file(var_file_reader_factory, request) -> VarFile:
 
 
 @pytest.fixture
-def deploy_ioc_var_file(var_file_reader_factory, request) -> VarFile:
-    return var_file_reader_factory(Path("roles/deploy_ioc/vars"))[request.param]
+def install_ioc_var_file(request) -> VarFile:
+    base = Path("roles/install_ioc/tasks/device_types")
+    type_name = request.param
+    var_file = base / type_name / "vars.yml"
+    with open(var_file) as file:
+        return VarFile(
+            name=type_name,
+            path=var_file,
+            data=yaml.safe_load(file),
+        )

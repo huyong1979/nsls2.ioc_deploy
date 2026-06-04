@@ -190,9 +190,9 @@ def deploy_configs(options: DeploymentOptions):
             config_data = yaml.safe_load(fp)
 
         if (
-            "deploy_ioc_supported_el_versions" in config_data
+            "install_ioc_supported_el_versions" in config_data
             and options.el_version
-            not in config_data["deploy_ioc_supported_el_versions"]
+            not in config_data["install_ioc_supported_el_versions"]
         ):
             logger.warning(
                 f"Skipping {ioc_name} on el{options.el_version}, unsupported"
@@ -237,13 +237,13 @@ def deploy_configs(options: DeploymentOptions):
                 "--limit",
                 options.hostname,
                 "-e",
-                f"deploy_ioc_target={ioc_name}",
+                f"install_ioc_target={ioc_name}",
                 "-e",
-                f"deploy_ioc_local_config_path={path}",
+                f"install_ioc_local_config_path={path}",
                 "-e",
-                f"deploy_ioc_nsls2network_available={NSLS2NETWORK_PKG_AVAILABLE}",
+                f"install_ioc_nsls2network_available={NSLS2NETWORK_PKG_AVAILABLE}",
                 "-e",
-                f"deploy_ioc_pixi_executable_path={options.pixi_path}",
+                f"install_ioc_pixi_executable_path={options.pixi_path}",
             ]
         )
         if options.skip_compilation or (options.container and example_skip_compilation):
@@ -260,7 +260,7 @@ def deploy_configs(options: DeploymentOptions):
                 mode="w", suffix=".json", delete=False
             )
             json.dump(
-                {"deploy_ioc_manual_ioc_files": options.manual_ioc_files[ioc_name]},
+                {"install_ioc_manual_ioc_files": options.manual_ioc_files[ioc_name]},
                 manual_files_tmpfile,
             )
             manual_files_tmpfile.close()
@@ -434,16 +434,16 @@ def main():
 
     if args.all:
         logger.info("Finding all examples for all IOC types")
-        device_roles_path = top_path / "roles/device_roles"
-        for device_role_path in device_roles_path.iterdir():
+        device_types_path = top_path / "roles/install_ioc/tasks/device_types"
+        for device_type_path in device_types_path.iterdir():
             device_role_examples = get_all_examples_for_type(
-                device_role_path.stem, device_role_path
+                device_type_path.stem, device_type_path
             )
             configs_to_deploy.update(device_role_examples)
 
     elif args.type:
         logger.info(f"Loading all examples for IOC type: {args.type}")
-        role_path = top_path / "roles/device_roles" / args.type
+        role_path = top_path / "roles/install_ioc/tasks/device_types" / args.type
         if not role_path.exists():
             raise ValueError(f"Unknown IOC type: {args.type}")
 

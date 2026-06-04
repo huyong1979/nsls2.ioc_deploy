@@ -1,0 +1,8 @@
+---
+install_ioc_use_common: true
+install_ioc_required_module: elio_335730d
+install_ioc_template_root_path: "{{ install_ioc_required_module_path }}"
+install_ioc_make_autosave_files: true
+install_ioc_executable: elio
+install_ioc_device_specific_env:
+  EPICS_DB_INCLUDE_PATH: "$(ELIO)/db"

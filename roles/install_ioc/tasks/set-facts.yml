@@ -1,0 +1,139 @@
+---
+
+- name: Reload default configuration variables
+  ansible.builtin.include_vars:
+    file: defaults/main.yml
+
+- name: Set IOC configuration to variable
+  ansible.builtin.set_fact:
+    ioc: "{{ host_config[install_ioc_ioc_name] }}"
+
+- name: Display read IOC configuration
+  ansible.builtin.debug:
+    msg: "{{ ioc }}"
+
+- name: Get IOC type specific default vars
+  ansible.builtin.include_vars: "{{ role_path }}/tasks/device_types/{{ ioc.type }}/vars.yml"
+
+- name: Check to make sure IOC can be deployed on this host
+  ansible.builtin.fail:
+    msg: "EL version {{ ansible_distribution_major_version }} not supported"
+  when: >
+    install_ioc_supported_el_versions is defined
+    and ansible_distribution == "RedHat"
+    and ansible_distribution_major_version | int not in install_ioc_supported_el_versions
+
+- name: Handle any module requirements
+  when: install_ioc_required_module is defined or ioc.required_module is defined
+  block:
+    - name: Set required module
+      ansible.builtin.set_fact:
+        install_ioc_required_module: "{{ install_ioc_required_module }}"
+      when: install_ioc_required_module is defined
+
+    - name: Override default required module if specified
+      ansible.builtin.set_fact:
+        install_ioc_required_module: "{{ ioc.required_module }}"
+      when: ioc.required_module is defined
+
+    - name: Install any modules that are required for this IOC type
+      ansible.builtin.include_role:
+        name: nsls2.ioc_deploy.install_module
+      vars:
+        install_module_name: "{{ install_ioc_required_module }}"
+
+    - name: Create variable that stores path to installed required module
+      ansible.builtin.set_fact:
+        install_ioc_required_module_path: "{{ install_module_leaf_module_path }}"
+
+    - name: If specified, override ioc exe with installed module exe
+      ansible.builtin.set_fact:
+        install_ioc_executable: "{{ install_module_leaf_executable }}"
+      when: install_module_leaf_executable is defined
+
+- name: Get default environment variables for ioc type
+  ansible.builtin.set_fact:
+    install_ioc_merged_env:
+      "{{ install_ioc_default_env |
+          combine(install_ioc_device_specific_env) }}"
+
+- name: Merge any installed module locations into environment
+  ansible.builtin.set_fact:
+    install_ioc_merged_env:
+      "{{ install_ioc_merged_env
+          | combine(install_module_epics_deps, install_module_installed) }}"
+  when: install_ioc_required_module is defined
+
+- name: Merge in instance specific environment
+  ansible.builtin.set_fact:
+    install_ioc_merged_env:
+      "{{ install_ioc_merged_env | combine(ioc.environment) }}"
+  when: ioc.environment is defined
+
+# Auto-compute EPICS_DB_INCLUDE_PATH from locally-installed module locations
+# so device role vars don't have to set it manually. Honors any explicit
+# value the user already supplied via device_specific_env or ioc.environment.
+#
+# Only `install_module_installed` is consulted: it lists modules built into
+# non-bundle paths that need their own `$(MOD)/db` entry. The other env
+# dicts (install_module_default_epics_deps, install_module_epics_deps) all
+# point at /usr/lib/epics for unbuilt modules, which is the EPICS_BASE
+# bundle path already covered by `$(EPICS_BASE)/db` at the tail of the list.
+- name: Auto-compute EPICS_DB_INCLUDE_PATH if not explicitly set
+  ansible.builtin.set_fact:
+    install_ioc_merged_env:
+      "{{ install_ioc_merged_env
+          | combine({'EPICS_DB_INCLUDE_PATH':
+                     install_ioc_auto_db_include_path}) }}"
+  vars:
+    install_ioc_db_module_keys: >-
+      {{ (install_module_installed | default({})).keys() | list
+         | reject('equalto', 'EPICS_BASE')
+         | select('in', install_ioc_merged_env)
+         | list }}
+    install_ioc_auto_db_include_path: >-
+      {{ (['$(TOP)/db']
+          + (install_ioc_db_module_keys
+             | map('regex_replace', '^(.*)$', '$(\1)/db') | list)
+          + ['$(EPICS_BASE)/db']) | join(':') }}
+  when: "'EPICS_DB_INCLUDE_PATH' not in install_ioc_merged_env"
+
+- name: Show merged environment pre-macro substitution
+  ansible.builtin.debug:
+    msg: "{{ install_ioc_merged_env }}"
+
+- name: Find envvars that use macros
+  ansible.builtin.set_fact:
+    install_ioc_envvars_with_macros: "{{ install_ioc_merged_env | dict2items |
+                                      selectattr('value', 'search', '\\$\\(') |
+                                      map(attribute='key') |
+                                      list }}"
+
+- name: Expand all macros in value of {{ item }}
+  ansible.builtin.include_tasks: process-env.yml
+  with_items: "{{ install_ioc_envvars_with_macros }}"
+
+- name: Display merged environment
+  ansible.builtin.debug:
+    msg: "{{ install_ioc_merged_env }}"
+
+- name: Override default IOC exe root path if specified
+  ansible.builtin.set_fact:
+    install_ioc_template_root_path: "{{ ioc.ioc_template_root_path }}"
+  when: ioc.ioc_template_root_path is defined
+
+- name: Override default IOC exe name if specified
+  ansible.builtin.set_fact:
+    install_ioc_executable: "{{ ioc.executable }}"
+  when: ioc.executable is defined
+
+- name: Get list of substitution files
+  ansible.builtin.set_fact:
+    substitutions: "{{ ioc.substitutions }}"
+  when: ioc.substitutions is defined
+
+- name: Merge any ioc specific dbpf entries
+  ansible.builtin.set_fact:
+    install_ioc_dbpf_list:
+      "{{ install_ioc_dbpf_list + ioc.dbpf }}"
+  when: ioc.dbpf is defined

@@ -1,0 +1,12 @@
+
+dbLoadDatabase("{{ install_ioc_template_root_path }}/dbd/{{ install_ioc_executable }}.dbd")
+{{ install_ioc_executable }}_registerRecordDeviceDriver(pdbbase)
+
+# va specific commands
+
+## User defined ENV variables
+epicsEnvSet("STREAM_PROTOCOL_PATH", "$(VA)/protocol")
+
+{% for device in ioc.devices %}
+drvAsynIPPortConfigure("{{ device.PORT }}", "{{ device.HOST }}:{{ device.IP_PORT }}")
+{% endfor %}

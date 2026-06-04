@@ -1,0 +1,19 @@
+---
+
+install_ioc_use_common: true
+install_ioc_use_ad_common: true
+install_ioc_required_module: adpicam_0d86fae
+install_ioc_template_root_path:
+  "{{ install_ioc_required_module_path }}/iocs/PICamIOC"
+install_ioc_as_dir_name: autosave
+install_ioc_req_file_list:
+  - name: auto_settings.req
+    macros: "P=$(PREFIX)"
+install_ioc_device_specific_env:
+  PORT: "PIC1"
+  QSIZE: 20
+  NCHANS: 2048
+  CBUFFS: 500
+  MAX_THREADS: 8
+  XSIZE: 2048
+  YSIZE: 2048
